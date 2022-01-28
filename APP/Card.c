@@ -8,46 +8,62 @@
 #include "Card.h"
 
 STATE u8State;
-Card card;
+Card_t card;
+LED_t led_err = {PORTD, PIN7}; //Random Pin to be changed
 void Card_App(void){
-	
+	TERMINAL_u8Init();
+	INTERFACE_u8Init();	
+	LED_u8Init(&led_err);
 	EEPROM_Init();
 	uint8_t pattern;
 	uint8_t status = EEPROM_u8RandonReadFrom(0, 0, &pattern);
-	if(pattern != UNIQUE_PATTERN){
-		u8State = PROGRAMMING;
+	uint8_t slave_selected;
+	if(status == 1){
+		if(pattern != UNIQUE_PATTERN){
+			u8State = PROGRAMMING;
+		}
+		else{
+			u8State = USER;
+			EEPROM_u8ReadStringFrom(0, 1, card.NAME);
+			EEPROM_u8ReadStringFrom(0, 11, card.PAN);
+			EEPROM_u8ReadStringFrom(0, 21, card.PIN);
+		}
 	}
 	else{
-		u8State = USER;
-		EEPROM_u8ReadStringFrom(0, 1, card.NAME);
-		EEPROM_u8ReadStringFrom(0, 11, card.PAN);
-		EEPROM_u8ReadStringFrom(0, 21, card.PIN);
+		//Error
+		LED_u8On(&led_err);
 	}
 	while(1){
 		switch(u8State){
 			case PROGRAMMING:
 			//Enter Programming mode
-			//UART_u8SendString("Enter Card Holder Name: ");
-			//UART_u8RecieveString(card.NAME, 9);
-			//UART_u8SendString("Enter Primary Account Number: ");
-			//UART_u8RecieveString(card.PAN, 9);
-			//UART_u8SendString("Enter PIN: ");
-			//UART_u8RecieveString(card.PIN, 4);
+			TERMINAL_u8Interface(&card);
 			EEPROM_u8WriteStringTo(0, 1, card.NAME);
 			EEPROM_u8WriteStringTo(0, 11, card.PAN);
-			EEPROM_u8WriteStringTo(0, 21, card.PIN);
+			EEPROM_u8WriteStringTo(0, 21, card.PIN);	
 			u8State = USER;
+			TERMINAL_u8EnableInterrupt(UART_callBack);
 			break;
 			case USER:
-			//Check if user Entered ADMIN word
-			//If it was entered go to PROGRAMMING Mode
-			//if not check if Slave is selected
-			//if slave selected
-			//SPI_u8SendString(card.PAN);
-			//SPI_u8SendString(card.PIN);
+			INTERFACE_u8SendData(card.PAN);
+			INTERFACE_u8SendData(card.PIN);
 			break;
 			default:
 			break;
 		}	
+	}
+}
+
+
+void UART_callBack(uint8_t data){
+	static uint8_t iter = 0;
+	static uint8_t compared_value[] = "ADMIN";
+	if(data == compared_value[iter]){
+		iter++;
+		if(iter == 5){
+			u8State = PROGRAMMING;
+			TERMINAL_u8DisableInterrupt();
+			iter = 0;
+		}
 	}
 }

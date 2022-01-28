@@ -193,5 +193,5 @@ uint8_t I2C_u8SlaveGetByte(uint8_t* pu8Reading)
 
 
 void __vector_19(void) {
-	gu8_I2CState=TWSR_REG & I2C_PRESCALAR_MASK;
+	gu8_I2CState = TWSR_REG & I2C_PRESCALAR_MASK;
 }

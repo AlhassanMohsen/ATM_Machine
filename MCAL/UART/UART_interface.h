@@ -102,7 +102,7 @@ uint8_t UART_u8RecieveString(uint8_t* pu8ReceivedData);
  * 				-UART_NULL_INPUT=7,         //!< The input pointer is pointing to NULL
  * 				-UART_INTIALIZATION_ERROR=8 //!< The UART is not Intialized
  */
-uint8_t UART_u8EnableRecievingInterrupt(void (*pfnCallBack)(void));
+uint8_t UART_u8EnableRecievingInterrupt(void (*pfnCallBack)(uint8_t));
 
 /**
  * @fn UART_u8EnableSendingInterrupt(void (*pfnCallBack)(void))

@@ -11,7 +11,7 @@
 
 
 static uint8_t gu8_IntializationFlag = UART_NOT_INTIALIZED; /// This flag is used to detect when user is trying to use the Peripheral before initialization
-static void (*gpf_RecieveCallBack)(void)=NULL; /// pointer to the function that will be called in the Receive interrupt
+static void (*gpf_RecieveCallBack)(uint8_t)=NULL; /// pointer to the function that will be called in the Receive interrupt
 static void (*gpf_TransmitCallBack)(void)=NULL; /// pointer to the function that will be called in the Transmission interrupt
 
 /**
@@ -271,7 +271,7 @@ uint8_t UART_u8RecieveString(uint8_t* pau8RecievedData)
  * @pre - the UART must be initialized
  * 		- the pointer to function not pointing to NULL
  */
-uint8_t UART_u8EnableRecievingInterrupt(void (*pfnCallBack)(void))
+uint8_t UART_u8EnableRecievingInterrupt(void (*pfnCallBack)(uint8_t))
 {
 	uint8_t u8ErrorState = UART_OK;
 
@@ -394,7 +394,7 @@ void __vector_13(void) {
 	if (gpf_RecieveCallBack!=NULL) // check if the pointer to the Callback is pointing to NULL
 	{
 		//if not then call the function pointing to it
-		gpf_RecieveCallBack();
+		gpf_RecieveCallBack(UDR_REG);
 	}else
 	{
 		// if it is the just flush the UDR
